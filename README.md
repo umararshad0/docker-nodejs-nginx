@@ -179,7 +179,7 @@ docker compose version
 Clone the repository and enter the project directory:
 
 ```bash
-git clone https://github.com/UmarArshad3/docker-nodejs-nginx.git
+git clone https://github.com/umararshad0/docker-nodejs-nginx.git
 cd docker-nodejs-nginx
 ```
 
