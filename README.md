@@ -4,6 +4,8 @@ A containerized Node.js application deployed behind an Nginx reverse proxy using
 
 This project demonstrates Docker image creation, container networking, service-to-service communication, health checks, reverse proxying, port exposure, persistent volumes, and container troubleshooting.
 
+The included certificate is for local/demo use. Keep the private key ignored by Git, generate a self-signed certificate for local use, and configure a trusted certificate and managed secret for deployment. HTTP redirects preserve the request host and forward to port 8443.
+
 ## Architecture Diagram
 
 ![Docker Node.js Nginx Architecture](docs/screenshots/docker-nodejs-nginx-architecture.drawio.png)
@@ -430,7 +432,7 @@ This project provided hands-on experience with:
 
 Possible extensions include:
 
-* HTTPS/TLS with Nginx
+* Trusted TLS certificate and managed key for deployment
 * Environment-based configuration
 * Production-grade Nginx configuration
 * Docker image optimization
