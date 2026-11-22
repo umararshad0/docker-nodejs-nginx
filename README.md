@@ -4,7 +4,7 @@ A containerized Node.js application deployed behind an Nginx reverse proxy using
 
 This project demonstrates Docker image creation, container networking, service-to-service communication, health checks, reverse proxying, port exposure, persistent volumes, and container troubleshooting.
 
-The included certificate is for local/demo use. Keep the private key ignored by Git, generate a self-signed certificate for local use, and configure a trusted certificate and managed secret for deployment. HTTP redirects preserve the request host and forward to port 8443.
+The repository does not include TLS certificate files. Generate a self-signed certificate for local use before starting Compose. Keep the private key out of Git; use a trusted certificate and managed secret for deployment. HTTP redirects preserve the request host and forward to port 8443.
 
 ## Architecture Diagram
 
@@ -185,6 +185,18 @@ git clone https://github.com/umararshad0/docker-nodejs-nginx.git
 cd docker-nodejs-nginx
 ```
 
+Generate the local demo certificate first. The certificate and key are ignored by Git:
+
+```bash
+mkdir -p nginx/certs
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout nginx/certs/server.key \
+  -out nginx/certs/server.crt \
+  -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+chmod 600 nginx/certs/server.key
+```
+
 Build the image and start the services:
 
 ```bash
@@ -197,21 +209,23 @@ Check the services:
 docker compose ps
 ```
 
-The Node.js service should show a healthy status.
+The Node.js service should show a healthy status. The HTTP endpoint redirects to HTTPS; open `https://localhost:8443` and accept the local certificate warning, or use `curl -k https://localhost:8443` for a local smoke check. Do not use `-k` for production requests.
 
 ### Test the Application
 
-Open the application in a browser:
+Open the application over HTTPS in a browser:
 
 ```text
-http://localhost:8080
+https://localhost:8443
 ```
 
-Or use curl:
+The HTTP endpoint redirects to HTTPS. For a local request with the self-signed certificate, use:
 
 ```bash
-curl http://localhost:8080
+curl -k https://localhost:8443
 ```
+
+The local certificate is not trusted by your operating system. Do not use `-k` with production services.
 
 Example response:
 
@@ -226,7 +240,7 @@ Example response:
 Test the health endpoint:
 
 ```bash
-curl http://localhost:8080/health
+curl -k https://localhost:8443/health
 ```
 
 Expected response:
@@ -270,7 +284,7 @@ docker compose start node-app
 Then test the application again:
 
 ```bash
-curl http://localhost:8080
+curl -k https://localhost:8443
 ```
 
 ### Example Troubleshooting Scenario
@@ -280,7 +294,7 @@ During testing, the Node.js container was intentionally stopped while Nginx rema
 The request:
 
 ```bash
-curl http://localhost:8080
+curl -k https://localhost:8443
 ```
 
 returned:
