@@ -1,16 +1,43 @@
 # Dockerized Node.js Application Behind Nginx
 
-A containerized Node.js application deployed behind an Nginx reverse proxy using Docker Compose.
+A Docker Compose stack that routes browser traffic through Nginx to a private Node.js and Express service.
 
-This project demonstrates Docker image creation, container networking, service-to-service communication, health checks, reverse proxying, port exposure, persistent volumes, and container troubleshooting.
+## Problem & Solution
 
-The repository does not include TLS certificate files. Generate a self-signed certificate for local use before starting Compose. Keep the private key out of Git; use a trusted certificate and managed secret for deployment. HTTP redirects preserve the request host and forward to port 8443.
+- **Problem:** Running an app and reverse proxy in separate containers can fail when ports, readiness, or service discovery are misconfigured.
+- **Approach:** The project connects Nginx and Node.js on a Compose network and uses a health check before proxy startup.
+- **Outcome:** It demonstrates a reproducible request path, local TLS, and practical troubleshooting for proxy errors.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" valign="top">
+      <img src="docs/screenshots/container-status.png" alt="Docker Compose container status" width="420">
+      <br><sub>Docker Compose container status</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="docs/screenshots/docker-network.png" alt="Docker network inspection" width="420">
+      <br><sub>Docker network inspection</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top">
+      <img src="docs/screenshots/http-access.png" alt="Node.js application accessed through localhost" width="420">
+      <br><sub>Node.js application accessed through localhost</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="docs/screenshots/docker-setup.png" alt="Docker application troubleshooting" width="420">
+      <br><sub>Docker application troubleshooting</sub>
+    </td>
+  </tr>
+</table>
 
 ## Architecture Diagram
 
 ![Docker Node.js Nginx Architecture](docs/screenshots/docker-nodejs-nginx-architecture.drawio.png)
 
-## Architecture
+### Architecture Notes
 
 ```text
                     Browser
@@ -43,7 +70,10 @@ The repository does not include TLS certificate files. Generate a self-signed ce
 6. Node.js processes the request.
 7. Nginx returns the response to the browser.
 
-## Technologies
+## Project Details
+
+### Technologies
+
 
 * Docker
 * Docker Compose
@@ -53,7 +83,9 @@ The repository does not include TLS certificate files. Generate a self-signed ce
 * Docker bridge networking
 * Docker health checks
 
-## Project Structure
+
+### Project Structure
+
 
 ```text
 docker-nodejs-nginx/
@@ -68,43 +100,23 @@ docker-nodejs-nginx/
 ├── .gitignore
 └── README.md
 ```
-## Screenshots
 
-The following screenshots demonstrate the Docker Compose services, container networking, application access, and troubleshooting workflow.
-
-### Container Status
-
-![Docker Compose container status](docs/screenshots/container-status.png)
-
-### Docker Network Configuration
-
-![Docker network inspection](docs/screenshots/docker-network.png)
-
-### Application Access
-
-![Node.js application accessed through localhost](docs/screenshots/http-access.png)
-
-### Troubleshooting
-
-![Docker application troubleshooting](docs/screenshots/docker-setup.png)
+### Docker Concepts Demonstrated
 
 
-
-## Docker Concepts Demonstrated
-
-### Dockerfile
+#### Dockerfile
 
 The `Dockerfile` builds the Node.js application image using the official Alpine-based Node.js image.
 
 Node.js and npm run inside the container, so the application runtime does not need to be installed directly on the host machine.
 
-### Image vs Container
+#### Image vs Container
 
 A Docker image is the packaged template containing the application and its runtime environment.
 
 A container is a running instance created from that image.
 
-### Docker Networking
+#### Docker Networking
 
 The Nginx and Node.js containers communicate through a dedicated Docker bridge network:
 
@@ -120,7 +132,7 @@ node-app:3000
 
 The configuration does not depend on manually assigned container IP addresses.
 
-### Port Exposure
+#### Port Exposure
 
 Only Nginx publishes a port to the host:
 
@@ -132,7 +144,9 @@ The Node.js application listens on port `3000` internally.
 
 Therefore, users access the application through Nginx rather than directly accessing the Node.js container.
 
-## Health Check
+
+### Health Check
+
 
 The Node.js application provides a health endpoint:
 
@@ -160,9 +174,11 @@ depends_on:
 
 This causes the Nginx service to wait until the Node.js service passes its health check before starting.
 
-## Running the Project
 
-### Prerequisites
+### Running the Project
+
+
+#### Prerequisites
 
 Install:
 
@@ -176,7 +192,7 @@ docker --version
 docker compose version
 ```
 
-### Start the Application
+#### Start the Application
 
 Clone the repository and enter the project directory:
 
@@ -211,7 +227,7 @@ docker compose ps
 
 The Node.js service should show a healthy status. The HTTP endpoint redirects to HTTPS; open `https://localhost:8443` and accept the local certificate warning, or use `curl -k https://localhost:8443` for a local smoke check. Do not use `-k` for production requests.
 
-### Test the Application
+#### Test the Application
 
 Open the application over HTTPS in a browser:
 
@@ -251,9 +267,11 @@ Expected response:
 }
 ```
 
-## Troubleshooting
 
-### Nginx Returns 502 Bad Gateway
+### Troubleshooting
+
+
+#### Nginx Returns 502 Bad Gateway
 
 A `502 Bad Gateway` can occur when Nginx cannot reach its upstream Node.js application.
 
@@ -287,7 +305,7 @@ Then test the application again:
 curl -k https://localhost:8443
 ```
 
-### Example Troubleshooting Scenario
+#### Example Troubleshooting Scenario
 
 During testing, the Node.js container was intentionally stopped while Nginx remained running.
 
@@ -336,7 +354,9 @@ Recover affected service
 Verify end-to-end request
 ```
 
-## Useful Docker Commands
+
+### Useful Docker Commands
+
 
 Check running services:
 
@@ -386,7 +406,9 @@ Rebuild the application:
 docker compose up -d --build
 ```
 
-## Persistence and Volumes
+
+### Persistence and Volumes
+
 
 Docker volumes were also tested separately to understand container persistence.
 
@@ -400,7 +422,9 @@ This distinction is important for stateful workloads such as:
 
 The Node.js application in this project is stateless, so it does not require a persistent volume.
 
-## Security Considerations
+
+### Security Considerations
+
 
 The Node.js application is kept behind the Nginx reverse proxy.
 
@@ -422,7 +446,9 @@ The repository also excludes sensitive files such as:
 
 through `.gitignore`.
 
-## Lessons Learned
+
+### Lessons Learned
+
 
 This project provided hands-on experience with:
 
@@ -442,7 +468,9 @@ This project provided hands-on experience with:
 * Git and GitHub workflow
 * Keeping secrets and unnecessary files out of source control
 
-## Future Improvements
+
+### Future Improvements
+
 
 Possible extensions include:
 
@@ -455,3 +483,7 @@ Possible extensions include:
 * Terraform infrastructure as code
 * Container monitoring and logging
 * Kubernetes deployment
+
+## Author
+
+**Umar Arshad** · [GitHub](https://github.com/umararshad0)
